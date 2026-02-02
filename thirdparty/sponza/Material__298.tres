@@ -1,4 +1,4 @@
-[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://cujxyiepujuat"]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cujxyiepujuat"]
 
 [ext_resource type="Texture2D" uid="uid://25g5gn5oqyl5" path="res://thirdparty/sponza/textures/background.webp" id="1_7atb2"]
 [ext_resource type="Texture2D" uid="uid://b5tqyajuyauyg" path="res://thirdparty/sponza/textures/background_ddn.webp" id="2_ejjwe"]

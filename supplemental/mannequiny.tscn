@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=4 uid="uid://o5l7v1p7luop"]
+[gd_scene format=4 uid="uid://o5l7v1p7luop"]
 
 [ext_resource type="PackedScene" uid="uid://cf7ddhkdov7ak" path="res://thirdparty/mannequiny-0.3.0.glb" id="1_g08bl"]
 
@@ -7282,11 +7282,11 @@ nodes/Run/node = SubResource("AnimationNodeAnimation_a76xv")
 nodes/Run/position = Vector2(120, 120)
 node_connections = [&"output", 0, &"OneShotPunch", &"IdleOrRun", 0, &"Idle", &"IdleOrRun", 1, &"Run", &"OneShotDash", 0, &"IdleOrRun", &"OneShotDash", 1, &"Dash", &"OneShotKick", 0, &"OneShotDash", &"OneShotKick", 1, &"Kick", &"OneShotPunch", 0, &"OneShotKick", &"OneShotPunch", 1, &"Punch"]
 
-[node name="Mannequiny" type="Node3D"]
+[node name="Mannequiny" type="Node3D" unique_id=1494064907]
 
-[node name="mannequiny-0_3_0" parent="." instance=ExtResource("1_g08bl")]
+[node name="mannequiny-0_3_0" parent="." unique_id=82908024 instance=ExtResource("1_g08bl")]
 
-[node name="Skeleton3D" parent="mannequiny-0_3_0/root" index="0"]
+[node name="Skeleton3D" parent="mannequiny-0_3_0/root" parent_id_path=PackedInt32Array(82908024, 746228276) index="0" unique_id=98082752]
 bones/0/rest = Transform3D(0.962528, 0.0655853, 0.263129, -0.187547, 0.861836, 0.471238, -0.195867, -0.502929, 0.841843, -0.00275962, 0.966413, 0.214285)
 bones/0/position = Vector3(-0.0289994, 0.88645, 0.125859)
 bones/0/rotation = Quaternion(0.0423445, 0.054859, -0.0147893, 0.997486)
@@ -7468,23 +7468,21 @@ bones/44/position = Vector3(-4.65661e-10, 0.0307386, 1.49055e-07)
 bones/44/rotation = Quaternion(-0.0859215, 0.000886246, -0.0176669, 0.996145)
 bones/44/scale = Vector3(1, 1, 1)
 
-[node name="body_001" parent="mannequiny-0_3_0/root/Skeleton3D" index="0"]
+[node name="body_001" parent="mannequiny-0_3_0/root/Skeleton3D" index="0" unique_id=1335956676]
 mesh = SubResource("ArrayMesh_cj6sg")
 skin = SubResource("Skin_v374n")
 
-[node name="AnimationPlayer" parent="mannequiny-0_3_0" index="1"]
-libraries = {
-&"": SubResource("AnimationLibrary_3cstg")
-}
+[node name="AnimationPlayer" parent="mannequiny-0_3_0" index="1" unique_id=1067425994]
+libraries/ = SubResource("AnimationLibrary_3cstg")
 
-[node name="AnimationTreeState" type="AnimationTree" parent="."]
+[node name="AnimationTreeState" type="AnimationTree" parent="." unique_id=372110885]
 active = false
 root_node = NodePath("../mannequiny-0_3_0")
 tree_root = SubResource("AnimationNodeStateMachine_rqn3s")
 anim_player = NodePath("../mannequiny-0_3_0/AnimationPlayer")
 parameters/conditions/is_moving = false
 
-[node name="AnimationTreeBlend" type="AnimationTree" parent="."]
+[node name="AnimationTreeBlend" type="AnimationTree" parent="." unique_id=561379391]
 active = false
 root_node = NodePath("../mannequiny-0_3_0")
 tree_root = SubResource("AnimationNodeBlendTree_rss0p")

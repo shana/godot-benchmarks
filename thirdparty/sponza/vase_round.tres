@@ -1,4 +1,4 @@
-[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://b6sk1020hpgjf"]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b6sk1020hpgjf"]
 
 [ext_resource type="Texture2D" uid="uid://cb4d4c4o65xnd" path="res://thirdparty/sponza/textures/vase_round.webp" id="1_oxsla"]
 [ext_resource type="Texture2D" uid="uid://bng4xf0v8qk77" path="res://thirdparty/sponza/textures/vase_round_ddn.webp" id="2_y24cy"]

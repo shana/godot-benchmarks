@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b4dhhefx2wbhe"]
+[gd_scene format=3 uid="uid://b4dhhefx2wbhe"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pbj7j"]
 cull_mode = 2
@@ -92,19 +92,17 @@ nodes/Animation/position = Vector2(-260, 120)
 "nodes/Animation 2/position" = Vector2(-260, 280)
 node_connections = [&"output", 0, &"Add2", &"Add2", 0, &"Animation", &"Add2", 1, &"Animation 2"]
 
-[node name="Node3D" type="Node3D"]
+[node name="Node3D" type="Node3D" unique_id=1086987232]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=864108749]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 mesh = SubResource("QuadMesh_pbj7j")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_r3fl7")
-}
-autoplay = "new_animation_2"
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1082548070]
+libraries/ = SubResource("AnimationLibrary_r3fl7")
+autoplay = &"new_animation_2"
 
-[node name="AnimationTree" type="AnimationTree" parent="."]
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1855421067]
 tree_root = SubResource("AnimationNodeBlendTree_jsk3o")
 anim_player = NodePath("../AnimationPlayer")
 parameters/Add2/add_amount = 0.0

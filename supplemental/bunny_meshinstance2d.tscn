@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=4 uid="uid://c7ntecauarpef"]
+[gd_scene format=4 uid="uid://c7ntecauarpef"]
 
 [ext_resource type="Texture2D" uid="uid://bix3405cfiuk4" path="res://supplemental/bunny.png" id="1_52gt6"]
 
@@ -16,6 +16,6 @@ _surfaces = [{
 "vertex_data": PackedByteArray("AAAgQTMzc8EAACBBmplhwQAAgEHNzCTBAACAQQAAQEGamXFBAABAQWZmRkEAAIBBAABAwQAAgEEAAIDBzMw8QQAAgMEAACDBAAAAwZqZccEAAADBAACAwTQzg8AAAIDBoJmZvgAAUMHAzEw/AABQwTAzE0AAAIDBZmYGQQAAgME=")
 }]
 
-[node name="bunny" type="MeshInstance2D"]
+[node name="bunny" type="MeshInstance2D" unique_id=1674202499]
 mesh = SubResource("ArrayMesh_hgweu")
 texture = ExtResource("1_52gt6")

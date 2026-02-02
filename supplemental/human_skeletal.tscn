@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://2hnfb6ownch2"]
+[gd_scene format=3 uid="uid://2hnfb6ownch2"]
 
 [ext_resource type="PackedScene" uid="uid://evhwk2sf0vdx" path="res://supplemental/human.scn" id="1_xgkrd"]
 
-[node name="Skeleton3D" type="Skeleton3D"]
+[node name="Skeleton3D" type="Skeleton3D" unique_id=928978990]
 bones/0/name = "Root"
 bones/0/parent = -1
 bones/0/rest = Transform3D(1, 0, 0, 0, 0.998357, -0.0572949, 0, 0.0572949, 0.998357, 0, 0.0028, -0.0916)
@@ -375,4 +375,5 @@ bones/52/position = Vector3(7.10133e-09, 0.130199, -3.72529e-09)
 bones/52/rotation = Quaternion(9.03383e-08, -2.28174e-08, 9.31323e-10, 1)
 bones/52/scale = Vector3(1, 1, 1)
 
-[node name="Model" parent="." instance=ExtResource("1_xgkrd")]
+[node name="Model" parent="." unique_id=2020921708 instance=ExtResource("1_xgkrd")]
+skeleton = NodePath("..")

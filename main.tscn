@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcw2442lg1ymu"]
+[gd_scene format=3 uid="uid://bcw2442lg1ymu"]
 
 [ext_resource type="Script" uid="uid://dg10yui44srth" path="res://main.gd" id="1"]
 
-[node name="Main" type="Panel"]
+[node name="Main" type="Panel" unique_id=1697057368]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -10,7 +10,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=1155673912]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 10.0
@@ -19,7 +19,7 @@ offset_bottom = 48.0
 text = "Available Benchmarks:"
 vertical_alignment = 1
 
-[node name="Tree" type="Tree" parent="."]
+[node name="Tree" type="Tree" parent="." unique_id=224283918]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -33,7 +33,7 @@ grow_vertical = 2
 hide_root = true
 metadata/_edit_layout_mode = 1
 
-[node name="SelectAll" type="Button" parent="."]
+[node name="SelectAll" type="Button" parent="." unique_id=506170254]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -46,7 +46,7 @@ grow_vertical = 0
 text = "Select All"
 metadata/_edit_layout_mode = 1
 
-[node name="SelectNone" type="Button" parent="."]
+[node name="SelectNone" type="Button" parent="." unique_id=90785128]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -59,7 +59,7 @@ grow_vertical = 0
 text = "Select None"
 metadata/_edit_layout_mode = 1
 
-[node name="CopyJSON" type="Button" parent="."]
+[node name="CopyJSON" type="Button" parent="." unique_id=1597175338]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -75,7 +75,7 @@ grow_vertical = 0
 text = "Copy JSON to Clipboard"
 metadata/_edit_layout_mode = 1
 
-[node name="Run" type="Button" parent="."]
+[node name="Run" type="Button" parent="." unique_id=416052482]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
