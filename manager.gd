@@ -181,7 +181,8 @@ func run_test(test_id: TestID) -> void:
 		#print("Waiting for scene change...")
 		await get_tree().process_frame
 	# Add a dummy child so that the above check works for subsequent reloads
-	get_tree().current_scene.add_child(Node.new())
+	var root = Node.new()
+	get_tree().current_scene.add_child(root)
 
 	var language := test_id.language
 	var bench_script
@@ -230,6 +231,9 @@ func run_test(test_id: TestID) -> void:
 
 			frames_captured += 1
 
+		get_tree().current_scene.remove_child(bench_node)
+		await get_tree().process_frame
+	
 	results.render_cpu /= float(max(1.0, float(frames_captured)))
 	results.render_gpu /= float(max(1.0, float(frames_captured)))
 	# Don't divide `results.idle` and `results.physics` since these are already
