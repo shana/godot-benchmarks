@@ -75,14 +75,15 @@ public partial class GCStressScene : Node2D
         QueueRedraw();
     }
 
+    public override void _EnterTree()
+    {
+        GD.Print($"Entering GCStress scene {this.GetChildCount()}");
+    }
+
     public override void _ExitTree()
     {
-        GD.Print("Existing GCStress scene");
-
-        foreach (var body in list)
-        {
-            RemoveChild(body);
-        }
+        GD.Print($"Exiting GCStress scene {this.GetChildCount()}");
+        list.Clear();
     }
 
     public override void _Draw()
@@ -90,6 +91,7 @@ public partial class GCStressScene : Node2D
         foreach (var body in list)
         {
             RemoveChild(body);
+            body.QueueFree();
         }
 
         list.Clear();

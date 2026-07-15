@@ -208,7 +208,7 @@ func run_test(test_id: TestID) -> void:
 	# Continue benchmarking if the function call has returned a node
 	var frames_captured := 0
 	if bench_node:
-		get_tree().current_scene.add_child(bench_node)
+		root.add_child(bench_node)
 
 		# TODO: Any better ways of waiting for shader compilation?
 		for i in 3:
@@ -231,8 +231,11 @@ func run_test(test_id: TestID) -> void:
 
 			frames_captured += 1
 
-		get_tree().current_scene.remove_child(bench_node)
+		root.remove_child(bench_node)
+		bench_node.queue_free()
 		await get_tree().process_frame
+
+	new_scene.free()
 
 	results.render_cpu /= float(max(1.0, float(frames_captured)))
 	results.render_gpu /= float(max(1.0, float(frames_captured)))
