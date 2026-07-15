@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Diagnostics;
 using Godot.Collections;
 
 public partial class GCStress : Benchmark
@@ -9,7 +10,7 @@ public partial class GCStress : Benchmark
 
     public GCStress()
     {
-        benchmark_time = 3e7;
+        benchmark_time = 1e7;
         test_idle = true;
     }
 
@@ -33,7 +34,7 @@ public partial class GCStress : Benchmark
 
     public Node2D BenchmarkGCStress1()
     {
-        var scene = new GCStressScene(true, CreateCircle, 2_000, true);
+        var scene = new GCStressScene(false, CreateCircle, 2_000, true);
         return scene;
     }
 }
@@ -46,6 +47,14 @@ public partial class GCStressScene : Node2D
     private readonly int amount;
     private readonly bool drawEveryFrame;
     Array<Godot.RigidBody2D> list;
+    private ulong frameCount;
+    private ulong elapsed;
+    private ulong firstFrameTime;
+    private ulong frameTimes;
+    private uint frameCollections;
+    private ulong peakMemory;
+    private ulong averageMemory;
+    private ulong previousMemory;
 
     const double SPREAD_H = 1600.0f;
     const double SPREAD_V = 800.0f;
@@ -75,22 +84,30 @@ public partial class GCStressScene : Node2D
         QueueRedraw();
     }
 
-    public override void _EnterTree()
-    {
-        GD.Print($"Entering GCStress scene {this.GetChildCount()}");
-    }
-
     public override void _ExitTree()
     {
-        GD.Print($"Exiting GCStress scene {this.GetChildCount()}");
         list.Clear();
+
+        GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb. GC peak: {peakMemory / (1024 * 1024)}Mb. Average Draw() time: {frameTimes / frameCollections}ms");
     }
 
     public override void _Draw()
     {
+        frameCount++;
+        if (firstFrameTime == 0)
+        {
+            firstFrameTime = Time.GetTicksMsec();
+        }
+
+        var start = Time.GetTicksMsec();
+
         foreach (var body in list)
         {
-            RemoveChild(body);
+            if (visualize)
+            {
+                RemoveChild(body);
+            }
+
             body.QueueFree();
         }
 
@@ -100,8 +117,35 @@ public partial class GCStressScene : Node2D
         {
             Godot.RigidBody2D body = drawFunc(visualize);
             body.Position = new((float)GD.RandRange(-SPREAD_H, SPREAD_H), (float)GD.RandRange(0.0d, -SPREAD_V));
-            AddChild(body);
+            if (visualize)
+            {
+                AddChild(body);
+            }
+
             list.Add(body);
+        }
+
+        var stop = Time.GetTicksMsec();
+        elapsed += stop - start;
+
+        ulong totalMemory = (ulong)GC.GetTotalMemory(false);
+        peakMemory = Math.Max(totalMemory, peakMemory);
+        if (frameCount == 1)
+        {
+            averageMemory = totalMemory;
+        }
+        else
+        {
+            averageMemory = averageMemory * (frameCount - 1) / frameCount + totalMemory / frameCount;
+        }
+
+        if (stop - firstFrameTime >= 1000)
+        {
+            frameCollections++;
+            frameTimes += elapsed / frameCount;
+
+            GD.Print($"GC usage: {totalMemory / (1024 * 1024)}Mb, average {averageMemory / (1024 * 1024)}Mb. Total frames:{frameCount} average: {elapsed / frameCount}ms");
+            firstFrameTime = Time.GetTicksMsec();
         }
     }
 }
