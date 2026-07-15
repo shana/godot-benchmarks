@@ -233,7 +233,7 @@ func run_test(test_id: TestID) -> void:
 
 		get_tree().current_scene.remove_child(bench_node)
 		await get_tree().process_frame
-	
+
 	results.render_cpu /= float(max(1.0, float(frames_captured)))
 	results.render_gpu /= float(max(1.0, float(frames_captured)))
 	# Don't divide `results.idle` and `results.physics` since these are already

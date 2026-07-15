@@ -14,8 +14,6 @@ public partial class GCStress : Benchmark
     public GCStress()
     {
         benchmark_time = 1e7;
-        test_render_cpu = true;
-        test_render_gpu = true;
         test_idle = true;
     }
 
