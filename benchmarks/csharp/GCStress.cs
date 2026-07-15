@@ -4,16 +4,12 @@ using Godot.Collections;
 
 public partial class GCStress : Benchmark
 {
-    const double SPREAD_H = 1600.0f;
-    const double SPREAD_V = 800.0f;
-
-    private QuadMesh SquareMesh = new QuadMesh();
     private SphereMesh CircleMesh = new SphereMesh();
 
 
     public GCStress()
     {
-        benchmark_time = 1e7;
+        benchmark_time = 3e7;
         test_idle = true;
     }
 
