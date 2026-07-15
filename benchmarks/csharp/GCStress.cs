@@ -1,7 +1,5 @@
 using Godot;
 using System;
-using System.Diagnostics;
-using Godot.Collections;
 
 public partial class GCStress : Benchmark
 {
@@ -34,7 +32,7 @@ public partial class GCStress : Benchmark
 
     public Node2D BenchmarkGCStress1()
     {
-        var scene = new GCStressScene(false, CreateCircle, 2_000, true);
+        var scene = new GCStressScene(false, CreateCircle, 10_000_000, true);
         return scene;
     }
 }
@@ -46,7 +44,8 @@ public partial class GCStressScene : Node2D
     private readonly Func<bool, Godot.RigidBody2D> drawFunc;
     private readonly int amount;
     private readonly bool drawEveryFrame;
-    Array<Godot.RigidBody2D> list;
+    //Godot.Collections.Array<LargeGC> list;
+    Godot.Collections.Array<string> list;
     private ulong frameCount;
     private ulong elapsed;
     private ulong firstFrameTime;
@@ -87,41 +86,60 @@ public partial class GCStressScene : Node2D
     {
         list.Clear();
 
-        GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb. GC peak: {peakMemory / (1024 * 1024)}Mb. Average Draw() time: {averageDrawTime}ms. Peak Draw() time: {peakDrawTime}ms");
+        GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb ({averageMemory}). GC peak: {peakMemory / (1024 * 1024)}Mb ({peakMemory}). Average Draw() time: {averageDrawTime}ms. Peak Draw() time: {peakDrawTime}ms");
     }
 
     public override void _Draw()
     {
+        GC.Collect();
+        GC.Collect();
+
         frameCount++;
         if (firstFrameTime == 0)
         {
             firstFrameTime = Time.GetTicksMsec();
         }
 
-        var start = Time.GetTicksMsec();
 
-        foreach (var body in list)
-        {
-            if (visualize)
-            {
-                RemoveChild(body);
-            }
+        //foreach (var body in list)
+        //{
+        //    //if (visualize)
+        //    //{
+        //    //    RemoveChild(body);
+        //    //}
 
-            body.QueueFree();
-        }
+        //    //body.QueueFree();
+        //    body.Free();
+        //}
 
         list.Clear();
 
-        for (int i = 0; i < amount; i++)
-        {
-            Godot.RigidBody2D body = drawFunc(visualize);
-            body.Position = new((float)GD.RandRange(-SPREAD_H, SPREAD_H), (float)GD.RandRange(0.0d, -SPREAD_V));
-            if (visualize)
-            {
-                AddChild(body);
-            }
 
+        //var first = new LargeGC();
+        var first = "";
+        list.Add(first);
+
+        for (int i = 1; i < amount; i++)
+        {
+            //Godot.RigidBody2D body = drawFunc(visualize);
+            //body.Position = new((float)GD.RandRange(-SPREAD_H, SPREAD_H), (float)GD.RandRange(0.0d, -SPREAD_V));
+            //if (visualize)
+            //{
+            //    AddChild(body);
+            //}
+
+            //var body = new LargeGC();
+            var body = "";
             list.Add(body);
+        }
+
+        var start = Time.GetTicksMsec();
+        // force a call to Count
+        var f = list.IndexOf(first);
+
+        // force calls to Count
+        foreach (var c in list)
+        {
         }
 
         var stop = Time.GetTicksMsec();
@@ -143,8 +161,44 @@ public partial class GCStressScene : Node2D
 
         if (stop - firstFrameTime >= 1000)
         {
-            GD.Print($"GC usage: {totalMemory / (1024 * 1024)}Mb, average {averageMemory / (1024 * 1024)}Mb. Total frames:{frameCount} draw time: {stop - start}ms. average: {averageDrawTime}ms. peak: {peakDrawTime}ms");
+            GD.Print($"GC usage: {totalMemory / (1024 * 1024)}Mb ({totalMemory}), average {averageMemory / (1024 * 1024)}Mb ({averageMemory}). Total frames:{frameCount} draw time: {stop - start}ms. average: {averageDrawTime}ms. peak: {peakDrawTime}ms");
             firstFrameTime = Time.GetTicksMsec();
+        }
+    }
+
+    internal partial class LargeGC : RefCounted
+    {
+        //const int SIZE = 10625; //85 KB
+        const int SIZE = 1; //8b
+
+        public double[] d;
+        public SmallGC m_pSmall;
+
+        public LargeGC()
+        {
+            d = new double[SIZE];
+            m_pSmall = null;
+        }
+
+        public virtual void AttachSmallObjects(SmallGC small)
+        {
+            m_pSmall = small;
+        }
+    }
+
+    internal class SmallGC
+    {
+        public LargeGC m_pLarge;
+        public SmallGC(int HasLargeObj)
+        {
+            if (HasLargeObj == 1)
+                m_pLarge = new LargeGC();
+            else
+                m_pLarge = null;
+        }
+        public virtual void AttachSmallObjects()
+        {
+            m_pLarge.AttachSmallObjects(this);
         }
     }
 }
