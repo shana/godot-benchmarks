@@ -50,11 +50,10 @@ public partial class GCStressScene : Node2D
     private ulong frameCount;
     private ulong elapsed;
     private ulong firstFrameTime;
-    private ulong frameTimes;
-    private uint frameCollections;
+    private ulong averageDrawTime;
+    private ulong peakDrawTime;
     private ulong peakMemory;
     private ulong averageMemory;
-    private ulong previousMemory;
 
     const double SPREAD_H = 1600.0f;
     const double SPREAD_V = 800.0f;
@@ -88,7 +87,7 @@ public partial class GCStressScene : Node2D
     {
         list.Clear();
 
-        GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb. GC peak: {peakMemory / (1024 * 1024)}Mb. Average Draw() time: {frameTimes / frameCollections}ms");
+        GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb. GC peak: {peakMemory / (1024 * 1024)}Mb. Average Draw() time: {averageDrawTime}ms. Peak Draw() time: {peakDrawTime}ms");
     }
 
     public override void _Draw()
@@ -139,12 +138,12 @@ public partial class GCStressScene : Node2D
             averageMemory = averageMemory * (frameCount - 1) / frameCount + totalMemory / frameCount;
         }
 
+        averageDrawTime = elapsed / frameCount;
+        peakDrawTime = Math.Max(stop - start, peakDrawTime);
+
         if (stop - firstFrameTime >= 1000)
         {
-            frameCollections++;
-            frameTimes += elapsed / frameCount;
-
-            GD.Print($"GC usage: {totalMemory / (1024 * 1024)}Mb, average {averageMemory / (1024 * 1024)}Mb. Total frames:{frameCount} average: {elapsed / frameCount}ms");
+            GD.Print($"GC usage: {totalMemory / (1024 * 1024)}Mb, average {averageMemory / (1024 * 1024)}Mb. Total frames:{frameCount} draw time: {stop - start}ms. average: {averageDrawTime}ms. peak: {peakDrawTime}ms");
             firstFrameTime = Time.GetTicksMsec();
         }
     }
