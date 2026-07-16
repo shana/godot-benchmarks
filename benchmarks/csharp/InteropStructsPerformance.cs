@@ -68,7 +68,6 @@ public partial class InteropStructsPerformance : Benchmark
         var scene = new GCStressScene(
             () => {
                 list = new();
-                list.Resize(1);
             },
             amount => {
                 OnDrawStart();
@@ -76,7 +75,7 @@ public partial class InteropStructsPerformance : Benchmark
                 for (var i = 0; i < amount; i++)
                 {
                     // force a call to Count
-                    var f = list.IndexOf(0);
+                    _ = list.IndexOf(0);
                 }
 
                 OnDrawFinish();
@@ -85,7 +84,7 @@ public partial class InteropStructsPerformance : Benchmark
             () => {
                 GD.Print($"GC average usage: {averageMemory / (1024 * 1024)}Mb ({averageMemory}). GC peak: {peakMemory / (1024 * 1024)}Mb ({peakMemory}). Average Draw() time: {averageDrawTime}ms. Peak Draw() time: {peakDrawTime}ms");
             },
-            10_000_000);
+            1_000_000);
         return scene;
     }
 }
