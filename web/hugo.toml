@@ -1,4 +1,4 @@
-baseURL = 'https://benchmarks.godotengine.org/'
+baseURL = 'https://shana.github.io/godot-benchmarks-results/'
 languageCode = 'en-us'
 title = 'Godot Benchmarks'
 

@@ -43,7 +43,7 @@ popd
 
 # Check if latest commit is already benchmarked in the results repository. If so, skip running the benchmark.
 rm -rf /tmp/godot-benchmarks-results/
-git clone git@github.com:godotengine/godot-benchmarks-results.git /tmp/godot-benchmarks-results/
+git clone git@github.com:shana/godot-benchmarks-results.git /tmp/godot-benchmarks-results/
 latest_commit="$(git -C "$GODOT_REPO_DIR" rev-parse HEAD)"
 
 pushd /tmp/godot-benchmarks-results/
