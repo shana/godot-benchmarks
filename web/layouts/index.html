@@ -40,7 +40,7 @@
   <ul id="recent-benchmarks">
     {{ range sort $benchmarks ".date" "desc" | first 10}}
       <li>
-        <a href="/benchmark/{{ .date }}_{{ .commit }}">{{ .date }}<code>{{ slicestr .engine.version_hash 0 9 }}</code></a>
+        <a href="/godot-benchmarks-results/benchmark/{{ .date }}_{{ .commit }}">{{ .date }}<code>{{ slicestr .engine.version_hash 0 9 }}</code></a>
       </li>
     {{ end }}
       <li><a onclick="showAllBenchmarks()" style="cursor: pointer">Show all benchmarks...</a></li>
@@ -48,7 +48,7 @@
   <ul id="all-benchmarks" style="display: none">
     {{ range sort $benchmarks ".date" "desc"}}
       <li>
-        <a href="/benchmark/{{ .date }}_{{ .commit }}">{{ .date }}<code>{{ slicestr .engine.version_hash 0 9 }}</code></a>
+        <a href="/godot-benchmarks-results/benchmark/{{ .date }}_{{ .commit }}">{{ .date }}<code>{{ slicestr .engine.version_hash 0 9 }}</code></a>
       </li>
     {{ end }}
   </ul>

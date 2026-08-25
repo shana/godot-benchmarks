@@ -6,7 +6,7 @@
       "type": "image/png",
       "sizes": "192x192"
     }],
-    "start_url": "/godot-benchmarks/",
+    "start_url": "/godot-benchmarks-results/",
     "background_color": "#223",
     "theme_color": "#3d8fcc"
   }
