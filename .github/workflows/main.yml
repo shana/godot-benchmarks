@@ -34,8 +34,7 @@ jobs:
           sudo apt-get install mesa-vulkan-drivers
 
       - name: Setup Python and SCons
-        working-directory: benchmarks
-        uses: ./.github/actions/godot-deps
+        uses: benchmarks/.github/actions/godot-deps
 
       - name: Force remove preinstalled .NET SDKs
         run: |
