@@ -27,6 +27,29 @@ jobs:
           repository: shana/godot-benchmarks-results
           path: results
 
+      - name: Setup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libwayland-bin
+          sudo apt-get install mesa-vulkan-drivers
+
+      - name: Setup Python and SCons
+        working-directory: benchmarks
+        uses: ./.github/actions/godot-deps
+
+      - name: Force remove preinstalled .NET SDKs
+        run: |
+          sudo rm -rf /usr/share/dotnet/sdk/*
+
+      - name: Setup older .NET SDK as baseline
+        uses: actions/setup-dotnet@v5
+        with:
+          # Targeting the oldest version we want to support to ensure it still builds.
+          dotnet-version: 8.0.100
+
+      - name: Install mold linker
+        uses: rui314/setup-mold@v1
+
       - name: Run the run-benchmarks-github.sh script
         working-directory: benchmarks
         run: |
