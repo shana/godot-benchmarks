@@ -219,10 +219,10 @@ $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-
 
 # Run GPU benchmarks.
 # TODO: Run on NVIDIA GPU.
-echo "Running GPU benchmarks."
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/amd.md" --json-results-prefix="amd"
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/intel.md" --json-results-prefix="intel"
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/nvidia.md" --json-results-prefix="nvidia"
+# echo "Running GPU benchmarks."
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/amd.md" --json-results-prefix="amd"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/intel.md" --json-results-prefix="intel"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/nvidia.md" --json-results-prefix="nvidia"
 
 # Strip debugging symbols for fair binary size comparison.
 # Do this after Godot is run so we can have useful crash backtraces
