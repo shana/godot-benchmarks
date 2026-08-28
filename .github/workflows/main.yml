@@ -10,9 +10,24 @@ jobs:
     name: Run benchmarks
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
+      - name: Checkout benchmarks
         uses: actions/checkout@v7
+        with:
+          path: benchmarks
 
-      - name: Run the run-benchmarks.sh script
+      - name: Checkout godot
+        uses: actions/checkout@v7
+        repository: godotengine/godot
+        with:
+          path: godot
+
+      - name: Checkout website
+        uses: actions/checkout@v7
+        repository: shana/godot-benchmarks-results
+        with:
+          path: results
+
+      - name: Run the run-benchmarks-github.sh script
+        working-directory: benchmarks
         run: |
-          ./run-benchmarks.sh
+          ./run-benchmarks-github.sh

@@ -29,31 +29,17 @@ if [[ "$ARG1" == "--help" || "$ARG1" == "-h" ]]; then
 	exit
 fi
 
-GODOT_REPO_DIR="$DIR/godot"
+GODOT_REPO_DIR="$(cd $DIR/../godot && pwd)"
+RESULTS_DIR="$(cd $DIR/../results && pwd)"
 
-if [[ ! -d "$GODOT_REPO_DIR/.git" ]]; then
-	git clone https://github.com/godotengine/godot.git "$GODOT_REPO_DIR"
-fi
-
-pushd "$GODOT_REPO_DIR"
-git reset --hard
-git clean -qdfx --exclude bin
-git pull
-popd
-
-# Check if latest commit is already benchmarked in the results repository. If so, skip running the benchmark.
-rm -rf /tmp/godot-benchmarks-results/
-git clone git@github.com:shana/godot-benchmarks-results.git /tmp/godot-benchmarks-results/
-latest_commit="$(git -C "$GODOT_REPO_DIR" rev-parse HEAD)"
-
-pushd /tmp/godot-benchmarks-results/
-for result in 2*.md; do
-	if [[ "${result:11:9}" == "${latest_commit:0:9}" ]]; then
-		echo "godot-benchmarks: Skipping benchmark run as the latest Godot commit is already present in the results repository."
-		exit
-	fi
-done
-popd
+# pushd $RESULTS_DIR
+# for result in 2*.md; do
+# 	if [[ "${result:11:9}" == "${latest_commit:0:9}" ]]; then
+# 		echo "godot-benchmarks: Skipping benchmark run as the latest Godot commit is already present in the results repository."
+# 		exit
+# 	fi
+# done
+# popd
 
 GODOT_EMPTY_PROJECT_DIR="$DIR/web/godot-empty-project"
 
@@ -219,10 +205,10 @@ $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-
 
 # Run GPU benchmarks.
 # TODO: Run on NVIDIA GPU.
-echo "Running GPU benchmarks."
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/amd.md" --json-results-prefix="amd"
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/intel.md" --json-results-prefix="intel"
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/nvidia.md" --json-results-prefix="nvidia"
+# echo "Running GPU benchmarks."
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/amd.md" --json-results-prefix="amd"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/intel.md" --json-results-prefix="intel"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/nvidia.md" --json-results-prefix="nvidia"
 
 # Strip debugging symbols for fair binary size comparison.
 # Do this after Godot is run so we can have useful crash backtraces
@@ -280,9 +266,9 @@ echo "$EXTRA_JSON" > "/tmp/extra.md"
 # We cloned a copy of the repository above so we can push the new JSON files to it.
 # The website build is performed by GitHub Actions on the `main` branch of the repository below,
 # so we only push files to it and do nothing else.
-cd /tmp/godot-benchmarks-results/
+cd $RESULTS_DIR
 
-OUTPUT_PATH="/tmp/godot-benchmarks-results/${DATE}_${COMMIT_HASH}.md"
+OUTPUT_PATH="$RESULTS_DIR${DATE}_${COMMIT_HASH}.md"
 rm -f "$OUTPUT_PATH"
 
 # Merge benchmark run JSONs together.
