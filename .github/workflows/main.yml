@@ -33,8 +33,18 @@ jobs:
           sudo apt-get install libwayland-bin
           sudo apt-get install mesa-vulkan-drivers
 
-      - name: Setup Python and SCons
-        uses: benchmarks/.github/actions/godot-deps
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+          architecture: x64
+
+      - name: Setup SCons
+        shell: bash
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons==4.10.1
+          scons --version
 
       - name: Force remove preinstalled .NET SDKs
         run: |
