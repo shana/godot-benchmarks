@@ -17,14 +17,14 @@ jobs:
 
       - name: Checkout godot
         uses: actions/checkout@v7
-        repository: godotengine/godot
         with:
+          repository: godotengine/godot
           path: godot
 
       - name: Checkout website
         uses: actions/checkout@v7
-        repository: shana/godot-benchmarks-results
         with:
+          repository: shana/godot-benchmarks-results
           path: results
 
       - name: Run the run-benchmarks-github.sh script
