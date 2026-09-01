@@ -31,8 +31,7 @@ jobs:
       - name: Setup dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libwayland-bin
-          sudo apt-get install mesa-vulkan-drivers
+          sudo apt-get install -y xvfb mesa-vulkan-drivers
 
       - name: Set up Python 3.x
         uses: actions/setup-python@v6
@@ -63,4 +62,5 @@ jobs:
       - name: Run the run-benchmarks-github.sh script
         working-directory: benchmarks
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           ./run-benchmarks-github.sh
