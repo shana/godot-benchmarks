@@ -65,6 +65,7 @@ if [[ "$ARG1" != "--skip-build" ]]; then
 	# Also create a `.gdignore` file to prevent Godot from importing resources
 	# within the Godot Git clone.
 	# WARNING: Any untracked and ignored files included in the repository will be removed!
+	echo "scons platform=linuxbsd target=editor optimize=debug module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc)"
 	BEGIN="$(date +%s%3N)"
 	PEAK_MEMORY_BUILD_DEBUG=$( (/usr/bin/time -f "%M" scons platform=linuxbsd target=editor optimize=debug module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc) 2>&1 || true) | tail -1)
 	END="$(date +%s%3N)"
@@ -72,6 +73,7 @@ if [[ "$ARG1" != "--skip-build" ]]; then
 
 	clear_build_environment
 
+	echo "scons platform=linuxbsd target=template_release optimize=speed lto=full module_mono_enabled=no progress=no debug_symbols=yes disable_path_overrides=no -j$(nproc)"
 	BEGIN="$(date +%s%3N)"
 	PEAK_MEMORY_BUILD_RELEASE=$( (/usr/bin/time -f "%M" scons platform=linuxbsd target=template_release optimize=speed lto=full module_mono_enabled=no progress=no debug_symbols=yes disable_path_overrides=no -j$(nproc) 2>&1 || true) | tail -1)
 	END="$(date +%s%3N)"
@@ -79,6 +81,7 @@ if [[ "$ARG1" != "--skip-build" ]]; then
 
 	clear_build_environment
 
+	echo "scons platform=linuxbsd target=editor dev_build=yes module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc)"
 	BEGIN="$(date +%s%3N)"
 	PEAK_MEMORY_BUILD_DEV=$( (/usr/bin/time -f "%M" scons platform=linuxbsd target=editor dev_build=yes module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc) 2>&1 || true) | tail -1)
 	END="$(date +%s%3N)"
@@ -86,6 +89,7 @@ if [[ "$ARG1" != "--skip-build" ]]; then
 
 	clear_build_environment
 
+	echo "scons platform=linuxbsd target=editor dev_build=yes scu_build=yes module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc)"
 	BEGIN="$(date +%s%3N)"
 	PEAK_MEMORY_BUILD_SCU=$( (/usr/bin/time -f "%M" scons platform=linuxbsd target=editor dev_build=yes scu_build=yes module_mono_enabled=no progress=no debug_symbols=yes -j$(nproc) 2>&1 || true) | tail -1)
 	END="$(date +%s%3N)"
@@ -200,8 +204,16 @@ $GODOT_DEBUG --headless --import --gpu-index 1 --build-solutions --quit-after 2
 # Run CPU benchmarks.
 
 echo "Running CPU benchmarks."
-$GODOT_DEBUG --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_debug.md" --json-results-prefix="cpu_debug"
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_release.md" --json-results-prefix="cpu_release"
+set +e # disable failing on error, the engine may crash after successfully running benchmarks
+$GODOT_DEBUG --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_debug.md" --json-results-prefix="cpu_debug" || {
+	echo "$GODOT_DEBUG crashed?"
+	true
+}
+$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_release.md" --json-results-prefix="cpu_release" || {
+	echo "$GODOT_RELEASE crashed?"
+	true
+}
+set -e
 
 # Run GPU benchmarks.
 # TODO: Run on NVIDIA GPU.
