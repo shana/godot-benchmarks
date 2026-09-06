@@ -19,7 +19,13 @@ func _init() -> void:
 	var jsons: Array[Dictionary] = []
 	for file_idx in OS.get_cmdline_user_args().size():
 		if file_idx < output_path_idx - 1:
-			jsons.push_back(JSON.parse_string(FileAccess.get_file_as_string(OS.get_cmdline_user_args()[file_idx])))
+			var file_path := OS.get_cmdline_user_args()[file_idx]
+			if FileAccess.file_exists(file_path):
+				jsons.push_back(JSON.parse_string(FileAccess.get_file_as_string(file_path)))
+
+	if jsons.size() == 0:
+		push_error("No valid JSON files were provided. Aborting.")
+		quit(1)
 
 	print("Saving merged JSON to: %s" % output_path)
 
