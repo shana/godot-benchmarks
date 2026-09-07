@@ -292,8 +292,6 @@ $GODOT_DEBUG --headless --path "$DIR" --script merge_json.gd -- /tmp/cpu_debug.m
 # appear on the web interface.
 echo "Pushing results to godot-benchmarks repository."
 git add .
-git config --local user.name "Godot Benchmarks"
-git config --local user.email "godot-benchmarks@example.com"
 git commit --no-gpg-sign --message "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
 
 https://github.com/godotengine/godot/commit/$COMMIT_HASH"

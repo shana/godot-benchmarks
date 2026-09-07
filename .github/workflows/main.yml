@@ -59,6 +59,21 @@ jobs:
       - name: Install mold linker
         uses: rui314/setup-mold@v1
 
+      - name: SpoiledBot App Token
+        id: token
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.SPOILEDBOT_ID }}
+          private_key: ${{ secrets.SPOILEDBOT_KEY }}
+
+      - name: Login Source GitHub
+        run: |
+          gh --version
+          echo "${{ steps.token.outputs.token }}" | gh auth login --with-token
+          gh auth status
+          git config --global user.name "Godot Benchmarks"
+          git config --global user.email "godot-benchmarks@example.com"
+
       - name: Run the run-benchmarks-github.sh script
         working-directory: benchmarks
         run: |
