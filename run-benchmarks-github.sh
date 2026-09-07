@@ -280,7 +280,7 @@ echo "$EXTRA_JSON" > "/tmp/extra.md"
 # so we only push files to it and do nothing else.
 cd $RESULTS_DIR
 
-OUTPUT_PATH="$RESULTS_DIR${DATE}_${COMMIT_HASH}.md"
+OUTPUT_PATH="$RESULTS_DIR/${DATE}_${COMMIT_HASH}.md"
 rm -f "$OUTPUT_PATH"
 
 # Merge benchmark run JSONs together.
