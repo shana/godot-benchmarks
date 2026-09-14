@@ -22,12 +22,6 @@ jobs:
           repository: godotengine/godot
           path: godot
 
-      - name: Checkout website
-        uses: actions/checkout@v7
-        with:
-          repository: shana/godot-benchmarks-results
-          path: results
-
       - name: Setup dependencies
         run: |
           sudo apt-get update
@@ -66,16 +60,29 @@ jobs:
           app_id: ${{ secrets.SPOILEDBOT_ID }}
           private_key: ${{ secrets.SPOILEDBOT_KEY }}
 
-      - name: Login Source GitHub
+      - name: Checkout website
+        uses: actions/checkout@v7
+        with:
+          repository: shana/godot-benchmarks-results
+          path: results
+          fetch-depth: 0
+          token: ${{ steps.token.outputs.token}}
+
+      - name: Login to GitHub
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          gh --version
-          echo "${{ steps.token.outputs.token }}" | gh auth login --with-token
-          gh auth status
           git config --global user.name "Godot Benchmarks"
           git config --global user.email "godot-benchmarks@example.com"
+          gh auth setup-git
+          gh auth status
 
       - name: Run the run-benchmarks-github.sh script
         working-directory: benchmarks
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           Xvfb :0 -screen 0 1024x768x24 &
           ./run-benchmarks-github.sh
