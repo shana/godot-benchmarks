@@ -190,7 +190,7 @@ jobs:
           path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Download build
-        if: ${{ matrix.type != "debug" }}
+        if: ${{ matrix.type != 'debug' }}
         uses: actions/download-artifact@v4
         with:
           name: debug.tar
@@ -216,7 +216,7 @@ jobs:
         run: tar -xvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.type }}.tar
 
       - name: Extract editor build
-        if: ${{ matrix.type != "debug" }}
+        if: ${{ matrix.type != 'debug' }}
         working-directory: ${{ env.ARTIFACTS_PATH }}/bin
         run: tar -xvf ${{ env.ARTIFACTS_PATH }}/debug.tar
 
