@@ -1,0 +1,87 @@
+name: Run benchmarks
+
+on:
+  # push:
+  # pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debug
+            flags: platform=linuxbsd target=editor optimize=debug module_mono_enabled=no progress=no debug_symbols=yes
+            archive: debug.tar
+            json: debug
+
+          - name: Release
+            flags: platform=linuxbsd target=template_release optimize=speed lto=full module_mono_enabled=no progress=no debug_symbols=yes disable_path_overrides=no
+            archive: release.tar
+            json: release
+    steps:
+      - name: Checkout godot
+        uses: actions/checkout@v7
+        with:
+          repository: godotengine/godot
+          path: godot
+
+      - name: Setup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb mesa-vulkan-drivers
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+          architecture: x64
+
+      - name: Setup SCons
+        shell: bash
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons==4.10.1
+          scons --version
+
+      - name: Force remove preinstalled .NET SDKs
+        run: |
+          sudo rm -rf /usr/share/dotnet/sdk/*
+
+      - name: Setup older .NET SDK as baseline
+        uses: actions/setup-dotnet@v5
+        with:
+          # Targeting the oldest version we want to support to ensure it still builds.
+          dotnet-version: 8.0.100
+
+      - name: Install mold linker
+        uses: rui314/setup-mold@v1
+
+      - name: Build ${{ matrix.name }}
+        working-directory: godot
+        shell: bash
+        run: |
+          Xvfb :0 -screen 0 1024x768x24 &
+          echo "scons ${{ matrix.flags }}"
+          BEGIN="$(date +%s%3N)"
+          PEAK_MEMORY_BUILD=$( (/usr/bin/time -f "%M" scons ${{ matrix.flags }} 2>&1 || true) | tail -1)
+          END="$(date +%s%3N)"
+          TIME_TO_BUILD="$((END - BEGIN))"
+          jq -Rs "." <<< '{ "cpu_${{ matrix.json }}": { "time": $TIME_TO_BUILD, "ram_bytes": $PEAK_MEMORY_BUILD } }' > results.json
+
+      - name: Archive
+        working-directory: godot
+        shell: bash
+        run: |
+          pushd bin
+          tar -cvf ../${{ matrix.archive }} *
+          popd
+          tar -Af ${{ matrix.archive }} results.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: godot/${{ matrix.archive }}
+          retention-days: 1
