@@ -16,14 +16,16 @@ jobs:
           - name: Debug
             flags: platform=linuxbsd target=editor optimize=debug module_mono_enabled=no progress=no debug_symbols=yes
             archive: debug.tar
-            json: debug
+            type: debug
             gdextension: template_debug
+            bin: godot.linuxbsd.editor.x86_64
 
           - name: Release
             flags: platform=linuxbsd target=template_release optimize=speed lto=full module_mono_enabled=no progress=no debug_symbols=yes disable_path_overrides=no
             archive: release.tar
-            json: release
+            type: release
             gdextension: template_release
+            bin: godot.linuxbsd.template_release.x86_64
 
     steps:
       - name: Workaround actions/upload-artifact#176
@@ -82,13 +84,15 @@ jobs:
           PEAK_MEMORY_BUILD=$( (/usr/bin/time -f "%M" scons ${{ matrix.flags }} 2>&1 || true) | tail -1)
           END="$(date +%s%3N)"
           TIME_TO_BUILD="$((END - BEGIN))"
-          jq -Rs "." <<< '{ "time": $TIME_TO_BUILD }' > bin/buildtime.json
-          jq -Rs "." <<< '{ "ram_bytes": $PEAK_MEMORY_BUILD }' > bin/ram.json
+          jq -Rs "." <<< '{ "time": $TIME_TO_BUILD }' > ${{ env.ARTIFACTS_PATH }}/buildtime_${{ matrix.type }}.json
+          jq -Rs "." <<< '{ "ram_bytes": $PEAK_MEMORY_BUILD }' > ${{ env.ARTIFACTS_PATH }}/buildram_${{ matrix.type }}.json
 
       - name: Archive build
         working-directory: godot/bin
         shell: bash
-        run: tar -cvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} *
+        run: |
+          tar -cvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ matrix.bin }}
+          tar -rf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ env.ARTIFACTS_PATH }}/*.json
 
       - name: Build gdextension
         working-directory: benchmarks/gdextension
@@ -121,49 +125,49 @@ jobs:
       matrix:
         include:
           - name: Debug warmup
-            json: debug
+            type: debug
             bin: godot.linuxbsd.editor.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: warmup
             archive: warmup_debug.tar
 
           - name: Release warmup
-            json: release
+            type: release
             bin: godot.linuxbsd.template_release.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: warmup
             archive: warmup_release.tar
 
           - name: Debug memory
-            json: debug
+            type: debug
             bin: godot.linuxbsd.editor.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: memory
             archive: memory_debug.tar
 
           - name: Release memory
-            json: release
+            type: release
             bin: godot.linuxbsd.template_release.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: memory
             archive: memory_release.tar
 
           - name: Debug shader cache
-            json: debug
+            type: debug
             bin: godot.linuxbsd.editor.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: cache
             archive: cache_debug.tar
 
           - name: Debug cpu
-            json: debug
+            type: debug
             bin: godot.linuxbsd.editor.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: cpu
             archive: cpu_debug.tar
 
           - name: Release cpu
-            json: release
+            type: release
             bin: godot.linuxbsd.template_release.x86_64
             editor: godot.linuxbsd.editor.x86_64
             test: cpu
@@ -182,13 +186,14 @@ jobs:
       - name: Download build
         uses: actions/download-artifact@v4
         with:
-          name: debug.tar
+          name: ${{ matrix.type }}.tar
           path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Download build
+        if: ${{ matrix.type != "debug" }}
         uses: actions/download-artifact@v4
         with:
-          name: release.tar
+          name: debug.tar
           path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Download gdextension build
@@ -204,24 +209,27 @@ jobs:
           path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Prepare environment
-        run: |
-          mkdir ${{ matrix.json }}
-          mkdir benchmarks/gdextension/bin
+        run: mkdir -p ${{ env.ARTIFACTS_PATH }}/bin
 
       - name: Extract build
-        working-directory: ${{ matrix.json }}
-        run: tar xvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }}
+        working-directory: ${{ env.ARTIFACTS_PATH }}/bin
+        run: tar -xvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.type }}.tar
+
+      - name: Extract editor build
+        if: ${{ matrix.type != "debug" }}
+        working-directory: ${{ env.ARTIFACTS_PATH }}/bin
+        run: tar -xvf ${{ env.ARTIFACTS_PATH }}/debug.tar
 
       - name: Extract gdextension
         working-directory: benchmarks/gdextension/bin
         run: |
-          tar xvf ${{ env.ARTIFACTS_PATH }}/template_debug.tar
-          tar xvf ${{ env.ARTIFACTS_PATH }}/template_release.tar
+          tar -xvf ${{ env.ARTIFACTS_PATH }}/template_debug.tar
+          tar -xvf ${{ env.ARTIFACTS_PATH }}/template_release.tar
 
       - name: Warmup run
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
-        run: ${{ matrix.json }}/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
+        run: ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
 
       - name: Benchmark warmup
         if: ${{ matrix.test == 'warmup' }}
@@ -232,7 +240,7 @@ jobs:
           for _ in {0..19}; do
             BEGIN="$(date +%s%3N)"
             echo "Performing benchmark debug startup/shutdown run."
-            ${{ matrix.json }}/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
+            ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
             END="$(date +%s%3N)"
             TOTAL="$((TOTAL + END - BEGIN))"
           done
@@ -244,7 +252,7 @@ jobs:
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
         run: |
-          PEAK_MEMORY_STARTUP_SHUTDOWN=$(/usr/bin/time -f "%M" ${{ matrix.json }}/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit 2>&1 | tail -1)
+          PEAK_MEMORY_STARTUP_SHUTDOWN=$(/usr/bin/time -f "%M" ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit 2>&1 | tail -1)
           jq -Rs "." <<< '{ "time": $PEAK_MEMORY_STARTUP_SHUTDOWN }' > ${{ env.ARTIFACTS_PATH }}/memory.json
 
       - name: Benchmark shader cache
@@ -253,7 +261,7 @@ jobs:
         working-directory: benchmarks/web/godot-empty-project
         run: |
           BEGIN="$(date +%s%3N)"
-          ${{ matrix.json }}/${{ matrix.bin }} -e --audio-driver Dummy --gpu-index 1 --quit || true
+          ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.editor }} -e --audio-driver Dummy --gpu-index 1 --quit || true
           END="$(date +%s%3N)"
           TOTAL="$((END - BEGIN))"
           jq -Rs "." <<< '{ "time": $TOTAL }' > ${{ env.ARTIFACTS_PATH }}/cache.json
@@ -267,7 +275,7 @@ jobs:
           for _ in {0..9}; do
             BEGIN="$(date +%s%3N)"
             echo "Performing benchmark shader cache debug editor run."
-            ${{ matrix.json }}/${{ matrix.bin }} -e --audio-driver Dummy --gpu-index 1 --quit || true
+            ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.editor }} -e --audio-driver Dummy --gpu-index 1 --quit || true
             END="$(date +%s%3N)"
             TOTAL="$((TOTAL + END - BEGIN))"
           done
@@ -279,14 +287,22 @@ jobs:
         shell: bash
         working-directory: benchmarks
         run: |
-          ${{ matrix.json }}/${{ matrix.editor }} --headless --import --gpu-index 1 --build-solutions --quit-after 2
+          ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.editor }} --headless --import --gpu-index 1 --build-solutions --quit-after 2
           set +e # disable failing on error, the engine may crash after successfully running benchmarks
-          ${{ matrix.json }}/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="${{ env.ARTIFACTS_PATH }}/cpu_debug.md" --json-results-prefix="cpu_debug" || {
-            echo "$GODOT_DEBUG crashed?"
+          ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="${{ env.ARTIFACTS_PATH }}/cpu_${{ matrix.type }}.json" --json-results-prefix="cpu_${{ matrix.type }}" || {
+            echo "${{ matrix.bin }} crashed?"
             true
           }
 
       - name: Archive results
         shell: bash
         run: |
-          tar -cvf results.tar *.json
+          cp ${{ env.ARTIFACTS_PATH }}/bin/*.json ${{ env.ARTIFACTS_PATH }}/
+          tar -cvf ${{ matrix.archive }} ${{ env.ARTIFACTS_PATH }}/*.json
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+          retention-days: 1
