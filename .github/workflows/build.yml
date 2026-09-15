@@ -90,9 +90,12 @@ jobs:
       - name: Archive build
         working-directory: godot/bin
         shell: bash
-        run: |
-          tar -cvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ matrix.bin }}
-          tar -rf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ env.ARTIFACTS_PATH }}/*.json
+        run: tar -cvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ matrix.bin }}
+
+      - name: Archive json
+        working-directory: ${{ env.ARTIFACTS_PATH }}
+        shell: bash
+        run: tar -rf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} *.json
 
       - name: Build gdextension
         working-directory: benchmarks/gdextension
@@ -229,13 +232,16 @@ jobs:
       - name: Warmup run
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
-        run: ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
+        run: |
+          Xvfb :0 -screen 0 1024x768x24 &
+          ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit || true
 
       - name: Benchmark warmup
         if: ${{ matrix.test == 'warmup' }}
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           TOTAL=0
           for _ in {0..19}; do
             BEGIN="$(date +%s%3N)"
@@ -252,6 +258,7 @@ jobs:
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           PEAK_MEMORY_STARTUP_SHUTDOWN=$(/usr/bin/time -f "%M" ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 --quit 2>&1 | tail -1)
           jq -Rs "." <<< '{ "time": $PEAK_MEMORY_STARTUP_SHUTDOWN }' > ${{ env.ARTIFACTS_PATH }}/memory.json
 
@@ -260,6 +267,7 @@ jobs:
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           BEGIN="$(date +%s%3N)"
           ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.editor }} -e --audio-driver Dummy --gpu-index 1 --quit || true
           END="$(date +%s%3N)"
@@ -271,6 +279,7 @@ jobs:
         shell: bash
         working-directory: benchmarks/web/godot-empty-project
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           TOTAL=0
           for _ in {0..9}; do
             BEGIN="$(date +%s%3N)"
@@ -287,6 +296,7 @@ jobs:
         shell: bash
         working-directory: benchmarks
         run: |
+          Xvfb :0 -screen 0 1024x768x24 &
           ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.editor }} --headless --import --gpu-index 1 --build-solutions --quit-after 2
           set +e # disable failing on error, the engine may crash after successfully running benchmarks
           ${{ env.ARTIFACTS_PATH }}/bin/${{ matrix.bin }} --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="${{ env.ARTIFACTS_PATH }}/cpu_${{ matrix.type }}.json" --json-results-prefix="cpu_${{ matrix.type }}" || {
@@ -296,9 +306,8 @@ jobs:
 
       - name: Archive results
         shell: bash
-        run: |
-          cp ${{ env.ARTIFACTS_PATH }}/bin/*.json ${{ env.ARTIFACTS_PATH }}/
-          tar -cvf ${{ matrix.archive }} ${{ env.ARTIFACTS_PATH }}/*.json
+        working-directory: ${{ env.ARTIFACTS_PATH }}/bin
+        run: tar -cvf ${{ matrix.archive }} *.json
 
       - name: Upload results
         uses: actions/upload-artifact@v4
