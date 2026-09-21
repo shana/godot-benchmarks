@@ -43,6 +43,10 @@ jobs:
           repository: godotengine/godot
           path: godot
 
+      - name: Calculate godot commit
+        working-directory: godot
+        run: echo "GODOT_HASH=$(git log --pretty="%H" -n1)" >> $GITHUB_ENV
+
       - name: Setup dependencies
         run: |
           sudo apt-get update
@@ -74,17 +78,25 @@ jobs:
       - name: Install mold linker
         uses: rui314/setup-mold@v1
 
+      - name: Restore cache
+        uses: actions/cache/restore@v6
+        with:
+          path: godot/.scons_cache
+          key: ${{ matrix.name }}|master|${{ env.GODOT_HASH }}
+          restore-keys: ${{ matrix.name }}|master
+        continue-on-error: true
+
       - name: Build ${{ matrix.name }}
         working-directory: godot
         shell: bash
-        run: |
-          echo "scons ${{ matrix.flags }}"
-          BEGIN="$(date +%s%3N)"
-          PEAK_MEMORY_BUILD=$( (/usr/bin/time -f "%M" scons ${{ matrix.flags }} 2>&1 || true) | tail -1)
-          END="$(date +%s%3N)"
-          TIME_TO_BUILD="$((END - BEGIN))"
-          jq -Rs "." <<< '{ "time": $TIME_TO_BUILD }' > ${{ env.ARTIFACTS_PATH }}/buildtime_${{ matrix.type }}.json
-          jq -Rs "." <<< '{ "ram_bytes": $PEAK_MEMORY_BUILD }' > ${{ env.ARTIFACTS_PATH }}/buildram_${{ matrix.type }}.json
+        run: scons ${{ matrix.flags }} cache_path=.scons_cache redirect_build_objects=no
+
+      - name: Save cache
+        uses: actions/cache/save@v6
+        with:
+          path: godot/.scons_cache
+          key: ${{ matrix.name }}|master|${{ env.GODOT_HASH }}
+        continue-on-error: true
 
       - name: Archive build
         working-directory: godot/bin
