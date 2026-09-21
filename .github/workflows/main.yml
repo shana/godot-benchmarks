@@ -87,3 +87,15 @@ jobs:
         run: |
           Xvfb :0 -screen 0 1024x768x24 &
           ./run-benchmarks-github.sh
+
+      - name: Push results
+        working-directory: results
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          git add .
+          git commit --no-gpg-sign --message "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
+
+          https://github.com/godotengine/godot/commit/$COMMIT_HASH"
+          git push
