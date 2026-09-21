@@ -79,24 +79,11 @@ jobs:
           gh auth setup-git
           gh auth status
 
-      - name: Test push
+      - name: Run the run-benchmarks-github.sh script
         working-directory: benchmarks
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          pushd ../results
-          echo "{}" > test1.md
-          git add .
-          git commit --no-gpg-sign --message "Testing a push"
-          git push
-          popd
-
-      # - name: Run the run-benchmarks-github.sh script
-      #   working-directory: benchmarks
-      #   env:
-      #     GH_TOKEN: ${{ steps.token.outputs.token }}
-      #     GITHUB_TOKEN: ${{ steps.token.outputs.token }}
-      #   run: |
-      #     Xvfb :0 -screen 0 1024x768x24 &
-      #     ./run-benchmarks-github.sh
+          Xvfb :0 -screen 0 1024x768x24 &
+          ./run-benchmarks-github.sh
