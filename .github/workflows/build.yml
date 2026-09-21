@@ -103,11 +103,6 @@ jobs:
         shell: bash
         run: tar -cvf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} ${{ matrix.bin }}
 
-      - name: Archive json
-        working-directory: ${{ env.ARTIFACTS_PATH }}
-        shell: bash
-        run: tar -rf ${{ env.ARTIFACTS_PATH }}/${{ matrix.archive }} *.json
-
       - name: Build gdextension
         working-directory: benchmarks/gdextension
         shell: bash
