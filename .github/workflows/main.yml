@@ -53,6 +53,14 @@ jobs:
       - name: Install mold linker
         uses: rui314/setup-mold@v1
 
+      # this needs to happen after the script runs, otherwise the token will expire
+      - name: SpoiledBot App Token
+        id: token
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.SPOILEDBOT_ID }}
+          private_key: ${{ secrets.SPOILEDBOT_KEY }}
+
       - name: Checkout website
         uses: actions/checkout@v7
         with:
@@ -77,7 +85,7 @@ jobs:
 
       # this needs to happen after the script runs, otherwise the token will expire
       - name: SpoiledBot App Token
-        id: token
+        id: token2
         uses: getsentry/action-github-app-token@v2
         with:
           app_id: ${{ secrets.SPOILEDBOT_ID }}
@@ -86,8 +94,8 @@ jobs:
       - name: Push results
         working-directory: results
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.token2.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token2.outputs.token }}
         run: |
           gh auth setup-git
           gh auth status
