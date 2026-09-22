@@ -288,5 +288,12 @@ rm -f "$OUTPUT_PATH"
 echo "Merging JSON files together."
 $GODOT_DEBUG --headless --path "$DIR" --script merge_json.gd -- /tmp/cpu_debug.md /tmp/cpu_release.md /tmp/amd.md /tmp/intel.md /tmp/nvidia.md /tmp/extra.md --output-path "$OUTPUT_PATH"
 
+# Build website files after running all benchmarks, so that benchmarks
+# appear on the web interface.
+git add .
+git commit --no-gpg-sign --message "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
+
+https://github.com/godotengine/godot/commit/$COMMIT_HASH"
+
 cd "$DIR"
 echo "Success."
