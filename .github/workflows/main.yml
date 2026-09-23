@@ -1,19 +1,18 @@
 name: Run benchmarks
 
 on:
-  # push:
+  push:
   # pull_request:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  benchmarks:
     name: Run benchmarks
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout benchmarks
         uses: actions/checkout@v7
         with:
-          path: benchmarks
           submodules: recursive
 
       - name: Checkout godot
@@ -53,7 +52,29 @@ jobs:
       - name: Install mold linker
         uses: rui314/setup-mold@v1
 
-      # this needs to happen after the script runs, otherwise the token will expire
+      - name: Run the run-benchmarks-github.sh script
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          Xvfb :0 -screen 0 1024x768x24 &
+          ./run-benchmarks-github.sh
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results.tar
+          path: out/results.tar
+          retention-days: 1
+
+  results:
+    name: Push results
+    needs: [benchmarks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workaround actions/upload-artifact#176
+        run: echo "ARTIFACTS_PATH=$(realpath ..)" >> $GITHUB_ENV
+
       - name: SpoiledBot App Token
         id: token
         uses: getsentry/action-github-app-token@v2
@@ -69,35 +90,35 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.token.outputs.token}}
 
+      - name: Download build
+        uses: actions/download-artifact@v4
+        with:
+          name: results.tar
+          path: ${{ env.ARTIFACTS_PATH }}
+
+      - name: Prepare results
+        run: tar -xvf ${{ env.ARTIFACTS_PATH }}/results.tar
+
       - name: Configure git
         run: |
           git config --global user.name "Godot Benchmarks"
           git config --global user.email "godot-benchmarks@example.com"
 
-      - name: Run the run-benchmarks-github.sh script
-        working-directory: benchmarks
+      - name: Login to github
+        working-directory: results
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          Xvfb :0 -screen 0 1024x768x24 &
-          ./run-benchmarks-github.sh
-
-      # this needs to happen after the script runs, otherwise the token will expire
-      - name: SpoiledBot App Token
-        id: token2
-        uses: getsentry/action-github-app-token@v2
-        with:
-          app_id: ${{ secrets.SPOILEDBOT_ID }}
-          private_key: ${{ secrets.SPOILEDBOT_KEY }}
+          gh auth setup-git
+          gh auth status
 
       - name: Push results
         working-directory: results
         env:
-          GH_TOKEN: ${{ steps.token2.outputs.token }}
-          GITHUB_TOKEN: ${{ steps.token2.outputs.token }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
-          gh auth setup-git
-          gh auth status
-          echo "Pushing results to godot-benchmarks repository."
+          git add .
+          git commit -F ../commitmsg
           git push

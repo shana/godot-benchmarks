@@ -30,7 +30,6 @@ if [[ "$ARG1" == "--help" || "$ARG1" == "-h" ]]; then
 fi
 
 GODOT_REPO_DIR="$(cd $DIR/../godot && pwd)"
-RESULTS_DIR="$(cd $DIR/../results && pwd)"
 
 # pushd $RESULTS_DIR
 # for result in 2*.md; do
@@ -275,25 +274,23 @@ EOF
 )
 echo "$EXTRA_JSON" > "/tmp/extra.md"
 
-# We cloned a copy of the repository above so we can push the new JSON files to it.
-# The website build is performed by GitHub Actions on the `main` branch of the repository below,
-# so we only push files to it and do nothing else.
-cd $RESULTS_DIR
-
+RESULTS_DIR="results"
 OUTPUT_PATH="$RESULTS_DIR/${DATE}_${COMMIT_HASH}.md"
-rm -f "$OUTPUT_PATH"
+
+mkdir -p "out/$RESULTS_DIR"
+pushd out
 
 # Merge benchmark run JSONs together.
 # Use editor build as release build errors due to missing PCK file.
 echo "Merging JSON files together."
 $GODOT_DEBUG --headless --path "$DIR" --script merge_json.gd -- /tmp/cpu_debug.md /tmp/cpu_release.md /tmp/amd.md /tmp/intel.md /tmp/nvidia.md /tmp/extra.md --output-path "$OUTPUT_PATH"
 
-# Build website files after running all benchmarks, so that benchmarks
-# appear on the web interface.
-git add .
-git commit --no-gpg-sign --message "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
+echo "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
 
-https://github.com/godotengine/godot/commit/$COMMIT_HASH"
+https://github.com/godotengine/godot/commit/$COMMIT_HASH" > "commitmsg"
 
-cd "$DIR"
+tar -cvf results.tar *
+
+popd
+
 echo "Success."
