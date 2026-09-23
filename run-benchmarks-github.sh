@@ -274,6 +274,8 @@ EOF
 )
 echo "$EXTRA_JSON" > "/tmp/extra.md"
 
+pushd $DIR
+
 RESULTS_DIR="results"
 OUTPUT_PATH="$RESULTS_DIR/${DATE}_${COMMIT_HASH}.md"
 
@@ -291,6 +293,7 @@ https://github.com/godotengine/godot/commit/$COMMIT_HASH" > "commitmsg"
 
 tar -cvf results.tar *
 
+popd
 popd
 
 echo "Success."
