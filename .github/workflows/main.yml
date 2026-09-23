@@ -69,6 +69,48 @@ jobs:
           path: benchmarks/out/results.tar
           retention-days: 1
 
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu_debug.md
+          path: /tmp/cpu_debug.md
+          retention-days: 1
+
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu_release.md
+          path: /tmp/cpu_release.md
+          retention-days: 1
+
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: amd.md
+          path: /tmp/amd.md
+          retention-days: 1
+
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: intel.md
+          path: /tmp/intel.md
+          retention-days: 1
+
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: nvidia.md
+          path: /tmp/nvidia.md
+          retention-days: 1
+
+      - name: Upload raw data
+        uses: actions/upload-artifact@v4
+        with:
+          name: extra.md
+          path: /tmp/extra.md
+          retention-days: 1
+
   results:
     name: Push results
     needs: [benchmarks]
