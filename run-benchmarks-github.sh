@@ -6,6 +6,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# enable tracing
+{ set -x; } 2>/dev/null
+
 export DIR
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -28,6 +31,12 @@ if [[ "$ARG1" == "--help" || "$ARG1" == "-h" ]]; then
 	echo "Usage: $0 [--skip-build]"
 	exit
 fi
+
+RESULTS_DIR="out"
+MAIN_RESULTS="$RESULTS_DIR/main"
+EXTRA_RESULTS="$RESULTS_DIR/extra"
+mkdir -p "$MAIN_RESULTS"
+mkdir -p "$EXTRA_RESULTS"
 
 GODOT_REPO_DIR="$(cd $DIR/../godot && pwd)"
 
@@ -204,11 +213,11 @@ $GODOT_DEBUG --headless --import --gpu-index 1 --build-solutions --quit-after 2
 
 echo "Running CPU benchmarks."
 set +e # disable failing on error, the engine may crash after successfully running benchmarks
-$GODOT_DEBUG --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_debug.md" --json-results-prefix="cpu_debug" || {
+$GODOT_DEBUG --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="$MAIN_RESULTS/cpu_debug.md" --json-results-prefix="cpu_debug" || {
 	echo "$GODOT_DEBUG crashed?"
 	true
 }
-$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="/tmp/cpu_release.md" --json-results-prefix="cpu_release" || {
+$GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --exclude-benchmarks="rendering/*" --save-json="$MAIN_RESULTS/cpu_release.md" --json-results-prefix="cpu_release" || {
 	echo "$GODOT_RELEASE crashed?"
 	true
 }
@@ -217,9 +226,9 @@ set -e
 # Run GPU benchmarks.
 # TODO: Run on NVIDIA GPU.
 # echo "Running GPU benchmarks."
-# $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/amd.md" --json-results-prefix="amd"
-# $GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/intel.md" --json-results-prefix="intel"
-# $GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="/tmp/nvidia.md" --json-results-prefix="nvidia"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 1 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="$EXTRA_RESULTS/amd.md" --json-results-prefix="amd"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 0 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="$EXTRA_RESULTS/intel.md" --json-results-prefix="intel"
+# $GODOT_RELEASE --audio-driver Dummy --gpu-index 2 -- --run-benchmarks --include-benchmarks="rendering/*" --save-json="$EXTRA_RESULTS/nvidia.md" --json-results-prefix="nvidia"
 
 # Strip debugging symbols for fair binary size comparison.
 # Do this after Godot is run so we can have useful crash backtraces
@@ -272,25 +281,18 @@ EXTRA_JSON=$(cat << EOF
 }
 EOF
 )
-echo "$EXTRA_JSON" > "/tmp/extra.md"
 
-RESULTS_DIR="results"
-OUTPUT_PATH="$RESULTS_DIR/${DATE}_${COMMIT_HASH}.md"
+echo "$EXTRA_JSON" > "$EXTRA_RESULTS/extra.md"
 
-mkdir -p "out/$RESULTS_DIR"
-pushd out
+echo "${DATE}_${COMMIT_HASH}.md" > "$RESULTS_DIR/resultsfile"
 
-# Merge benchmark run JSONs together.
-# Use editor build as release build errors due to missing PCK file.
-echo "Merging JSON files together."
-$GODOT_DEBUG --headless --path "$DIR" --script merge_json.gd -- /tmp/cpu_debug.md /tmp/cpu_release.md /tmp/amd.md /tmp/intel.md /tmp/nvidia.md /tmp/extra.md --output-path "$OUTPUT_PATH"
 
 echo "Deploy benchmark results of $COMMIT_HASH (master at $DATE)
 
-https://github.com/godotengine/godot/commit/$COMMIT_HASH" > "commitmsg"
+https://github.com/godotengine/godot/commit/$COMMIT_HASH" > "$RESULTS_DIR/commitmsg"
 
+pushd $RESULTS_DIR
 tar -cvf results.tar *
-
 popd
 
 echo "Success."

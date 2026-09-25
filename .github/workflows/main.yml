@@ -69,48 +69,6 @@ jobs:
           path: benchmarks/out/results.tar
           retention-days: 1
 
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpu_debug.md
-          path: /tmp/cpu_debug.md
-          retention-days: 1
-
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpu_release.md
-          path: /tmp/cpu_release.md
-          retention-days: 1
-
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: amd.md
-          path: /tmp/amd.md
-          retention-days: 1
-
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: intel.md
-          path: /tmp/intel.md
-          retention-days: 1
-
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: nvidia.md
-          path: /tmp/nvidia.md
-          retention-days: 1
-
-      - name: Upload raw data
-        uses: actions/upload-artifact@v4
-        with:
-          name: extra.md
-          path: /tmp/extra.md
-          retention-days: 1
-
   results:
     name: Push results
     needs: [benchmarks]
@@ -118,6 +76,12 @@ jobs:
     steps:
       - name: Workaround actions/upload-artifact#176
         run: echo "ARTIFACTS_PATH=$(realpath ..)" >> $GITHUB_ENV
+
+      - name: Checkout benchmarks
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          path: benchmarks
 
       - name: SpoiledBot App Token
         id: token
@@ -134,14 +98,24 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.token.outputs.token}}
 
-      - name: Download build
+      - name: Download results
         uses: actions/download-artifact@v4
         with:
           name: results.tar
           path: ${{ env.ARTIFACTS_PATH }}
 
       - name: Prepare results
-        run: tar -xvf ${{ env.ARTIFACTS_PATH }}/results.tar
+        run: |
+          mkdir out
+          pushd out
+          tar -xvf ${{ env.ARTIFACTS_PATH }}/results.tar
+          echo "RESULTS_FILE=$(cat resultsfile)" >> $GITHUB_ENV
+          echo "OUT_DIR=$(realpath .)" >> $GITHUB_ENV
+
+      - name: Merge results
+        run: |
+          jq -s -f benchmarks/merge.jq out/main/*.md out/extra/*.md > results/${{ env.RESULTS_FILE }}
+          cat results/${{ env.RESULTS_FILE }}
 
       - name: Configure git
         run: |
@@ -164,5 +138,5 @@ jobs:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           git add .
-          git commit -F ../commitmsg
+          git commit -F ${{ env.OUT_DIR }}/commitmsg
           git push
